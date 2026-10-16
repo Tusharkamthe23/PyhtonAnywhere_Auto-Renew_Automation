@@ -70,17 +70,44 @@ def login(session):
     logging.info("Login verified")
 
 
+
 def get_expiry(soup, domain):
     pane_id = f"id_{domain.replace('.', '_')}"
     pane = soup.find(id=pane_id)
 
-    if not pane:
+    if pane is None:
+        logging.warning(
+            "Dashboard pane not found. Expected id=%s", pane_id
+        )
+        logging.info(
+            "Available dashboard IDs: %s",
+            [
+                element.get("id")
+                for element in soup.find_all(id=True)
+                if "webapp" in element.get("id", "").lower()
+                or "pythonanywhere" in element.get("id", "").lower()
+            ][:20],
+        )
         return None
 
     expiry = pane.find("p", class_="webapp_expiry")
 
     if expiry:
-        return expiry.get_text(" ", strip=True)
+        text = expiry.get_text(" ", strip=True)
+        logging.info("Expiry element found: %s", text[:200])
+        return text
+
+    logging.warning(
+        "Expiry element not found inside pane %s", pane_id
+    )
+
+    logging.info(
+        "Paragraphs inside pane: %s",
+        [
+            p.get_text(" ", strip=True)[:120]
+            for p in pane.find_all("p")
+        ][:15],
+    )
 
     return None
 
@@ -137,6 +164,11 @@ def renew_webapps(session):
         )
 
         result.raise_for_status()
+        logging.info(
+            "Renewal response: HTTP %s, final URL: %s",
+            result.status_code,
+            result.url,
+        )
 
         # Fetch the dashboard again to verify the outcome.
         check_response = session.get(
