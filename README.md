@@ -46,10 +46,10 @@
 ## 📸 Demo / Screenshots
 
 > **Placeholder** – Add screenshots of the script in action, the GitHub Actions run, or the PythonAnywhere renewal page.
+![alt text](images/image.png)
 
 ```
-![alt text](image.png)
-[Insert screenshot of PythonAnywhere renewal confirmation]
+
 ```
 
 ---
